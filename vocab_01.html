@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocab Master: Cam 18 Test 3</title>
+    <style>
+        :root {
+            --primary-green: #58cc02;
+            --primary-green-shadow: #58a700;
+            --light-green: #d7ffb8;
+            --red: #ff4b4b;
+            --red-shadow: #ea2b2b;
+            --light-red: #ffdfe0;
+            --gray-bg: #ffffff;
+            --gray-text: #4b4b4b;
+            --gray-border: #e5e5e5;
+            --gray-hover: #f7f7f7;
+            --blue: #1cb0f6;
+            --blue-shadow: #1899d6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-bg);
+            color: var(--gray-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 600px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* Welcome Screen */
+        #welcome-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .mascot {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--gray-text);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            font-size: 18px;
+            border: 2px solid var(--gray-border);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--blue);
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+            border-bottom: 4px solid var(--primary-green-shadow);
+            border-radius: 16px;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+            transition: transform 0.1s, border-width 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 0px;
+            margin-bottom: 4px;
+        }
+
+        .btn:disabled {
+            background-color: var(--gray-border);
+            border-bottom-color: #d8d8d8;
+            color: #afafaf;
+            cursor: not-allowed;
+        }
+
+        /* Quiz Screen */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            margin-top: 20px;
+        }
+
+        .progress-bar-container {
+            flex: 1;
+            height: 16px;
+            background-color: var(--gray-border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-green);
+            width: 0%;
+            border-radius: 8px;
+            transition: width 0.4s ease;
+            position: relative;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 10px;
+            right: 10px;
+            height: 4px;
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+
+        .question-container {
+            flex: 1;
+        }
+
+        .question-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .word-status {
+            font-size: 14px;
+            color: var(--blue);
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: white;
+            border: 2px solid var(--gray-border);
+            border-bottom: 4px solid var(--gray-border);
+            border-radius: 16px;
+            padding: 18px 20px;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.1s;
+            color: var(--gray-text);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: var(--gray-hover);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            border-bottom-width: 2px;
+            margin-bottom: 2px;
+        }
+
+        .option-btn.selected-correct {
+            background-color: var(--light-green);
+            border-color: var(--primary-green);
+            border-bottom-color: var(--primary-green-shadow);
+            color: var(--primary-green-shadow);
+            font-weight: bold;
+        }
+
+        .option-btn.selected-wrong {
+            background-color: var(--light-red);
+            border-color: var(--red);
+            border-bottom-color: var(--red-shadow);
+            color: var(--red-shadow);
+            font-weight: bold;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        /* Bottom Feedback Banner */
+        #feedback-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            z-index: 10;
+        }
+
+        #feedback-banner.show {
+            transform: translateY(0);
+        }
+
+        #feedback-banner.correct {
+            background-color: var(--light-green);
+            color: var(--primary-green-shadow);
+        }
+
+        #feedback-banner.wrong {
+            background-color: var(--light-red);
+            color: var(--red-shadow);
+        }
+
+        .feedback-content {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .feedback-title {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .feedback-def {
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        #next-btn {
+            align-self: flex-end;
+            margin-top: 10px;
+        }
+
+        /* End Screen */
+        #end-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #end-screen h1 {
+            color: #ffc800; /* Gold */
+            font-size: 32px;
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            #app-container {
+                border: 2px solid var(--gray-border);
+                border-radius: 24px;
+                min-height: 80vh;
+                margin: 40px 0;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            }
+            #feedback-banner {
+                position: absolute;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+            }
+            .options-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="welcome-screen" class="screen active">
+        <div class="mascot">🦉</div>
+        <h1>Welcome to Vocab Master!</h1>
+        <input type="text" id="user-name" placeholder="Enter your name" autocomplete="off">
+        <button class="btn" id="start-btn">Start Learning</button>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="top-bar">
+            <div style="font-weight:bold; color:var(--gray-border);">✖</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress"></div>
+            </div>
+        </div>
+
+        <div class="question-container">
+            <h2 class="question-title" id="question-word">Word</h2>
+            <div class="word-status" id="word-status">New Word</div>
+            <div class="options-grid" id="options-container">
+                </div>
+        </div>
+    </div>
+
+    <div id="feedback-banner">
+        <div class="feedback-content">
+            <div class="feedback-title" id="feedback-title">Correct!</div>
+            <div class="feedback-def" id="feedback-def">Meaning: ...</div>
+            <button class="btn" id="next-btn" style="width:100%; max-width:none;">Continue</button>
+        </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+        <div class="mascot">🏆</div>
+        <h1 id="congrats-msg">Congratulations, [Name]!</h1>
+        <p style="font-size: 18px; margin-bottom: 30px; line-height: 1.5;">
+            You have successfully mastered and cleared all the vocabulary words from Cam 18 Test 3!
+        </p>
+        <button class="btn" onclick="location.reload()">Study Again</button>
+    </div>
+</div>
+
+<script>
+    // --- Data: Updated Vocabulary List ---
+    const rawVocab = [
+        { word: "equivalent", def: "tương đương" },
+        { word: "assume", def: "cho rằng" },
+        { word: "sphere", def: "quả cầu" },
+        { word: "emerges", def: "sự xuất hiện" },
+        { word: "selective", def: "chọn lọc" },
+        { word: "lay", def: "đặt nằm" },
+        { word: "magazine", def: "tạp chí" },
+        { word: "curious = intrigued", def: "tò mò" },
+        { word: "determine", def: "quyết tâm" },
+        { word: "satisfaction", def: "sự hài lòng" },
+        { word: "innovative", def: "đổi mới" },
+        { word: "resolute", def: "kiên quyết" },
+        { word: "rewarding", def: "bổ ích" },
+        { word: "excitement", def: "sự phấn khích" },
+        { word: "trail", def: "dấu vết" },
+        { word: "enclose", def: "bao gồm" },
+        { word: "sight", def: "thị giác" },
+        { word: "Apparently", def: "rõ ràng" },
+        { word: "unexceptional", def: "ko có gì đặc biệt" },
+        { word: "devoted", def: "tận tâm" },
+        { word: "involved", def: "có liên quan" },
+        { word: "prestigious", def: "uy tín" },
+        { word: "intellectual", def: "trí thức" },
+        { word: "neural", def: "thần kinh" },
+        { word: "contemporaries", def: "người đương thời" },
+        { word: "innate", def: "bẩm sinh" },
+        { word: "associated", def: "có liên quan" },
+        { word: "replicable", def: "có thể nhân rộng" },
+        { word: "traits", def: "đặc điểm" },
+        { word: "penultimate", def: "áp chót" },
+        { word: "deprived", def: "thiếu thốn" },
+        { word: "sculpture", def: "điêu khắc" },
+        { word: "outstanding", def: "nổi bật" },
+        { word: "creatures", def: "sinh vật" },
+        { word: "ward", def: "phường" },
+        { word: "phase out", def: "loại bỏ dần dần" },
+        { word: "commodity", def: "hàng hóa , mặt hàng" },
+        { word: "glitch", def: "lỗi kỹ thuật , sự cố nhỏ" },
+        { word: "conventional", def: "truyền thống" },
+        { word: "replenishment", def: "sự làm đầy" },
+        { word: "socioeconomic", def: "kinh tế xã hội" },
+        { word: "durability", def: "độ bền / tính bền" },
+        { word: "enhancement", def: "sự cải tiến / sự nâng cấp / sự tăng lên" },
+        { word: "manually", def: "được điều khiển bằng tay / thủ công" },
+        { word: "medieval", def: "thời trung cổ" },
+        { word: "backfire", def: "phản tác dụng" },
+        { word: "negligible", def: "ko đáng kể" },
+        { word: "clatter", def: "tiếng lạch" },
+        { word: "novel", def: "(n) tiểu thuyết , ( adj ) lạ thường" },
+        { word: "comprise = include", def: "bao gồm" },
+        { word: "entrench", def: "(v) đào hào , (adj) bám rễ , ăn sâu" },
+        { word: "overview", def: "tổng quan" },
+        { word: "cognitive", def: "thuộc về nhận" },
+        { word: "reservoir", def: "hồ nhân tạo / bình chứa" },
+        { word: "estimate", def: "đánh giá ước lượng" },
+        { word: "advocate", def: "tán thành ủng hộ" },
+        { word: "property", def: "đặc tính tính chất" },
+        { word: "ignition", def: "sự đánh lửa / sự bốc cháy" },
+        { word: "analogy", def: "sự so sánh , phép loại suy" },
+        { word: "adamant", def: "sự cương quyết , cứng rắn" },
+        { word: "universal", def: "phổ biến toàn cầu" },
+        { word: "perspective", def: "góc nhìn quan điểm" },
+        { word: "mediocrity", def: "sự tầm thường" },
+        { word: "soar", def: "tăng vọt" },
+        { word: "peer", def: "bạn đồng hành cùng trang lứa / người ngang hàng" },
+        { word: "virtue", def: "đặc tính tốt / ưu điểm" },
+        { word: "reconfigure", def: "cấu hình" },
+        { word: "absorb", def: "hấp thụ , hút cái j đó" },
+        { word: "autonomous", def: "tự chủ độc lập" },
+        { word: "scale", def: "tỷ lệ" },
+        { word: "substance", def: "chất , loại vật chất nào đó" },
+        { word: "sheer", def: "tuyệt đối" },
+        { word: "zeal", def: "hăng hái" },
+        { word: "diagnose", def: "chẩn đoán , xác định" },
+        { word: "stakeholder", def: "các bên liên quan / người giữ hộ 1 cái j đấy" },
+        { word: "comprehensive", def: "toàn diện" },
+        { word: "limitation", def: "sự hạn chế , nhược điểm" },
+        { word: "resistance", def: "sự phản đối" },
+        { word: "Aroma", def: "mùi thơm , hương vị" },
+        { word: "eliminate", def: "loại bỏ" },
+        { word: "prototype", def: "nguyên mẫu , người đầu tiên" },
+        { word: "susceptible", def: "dễ bị tổn thương , dễ bị ảnh hưởng bởi cái gì đó" },
+        { word: "tinker", def: "thợ hàn nối , chắp vá" },
+        { word: "Flourish", def: "sự thăng hoa" },
+        { word: "primitive", def: "sơ khai" },
+        { word: "erratic", def: "sự thất thường , ko ổn định" },
+        { word: "wane", def: "suy giảm yếu dần" },
+        { word: "pedagogical", def: "thuộc về sư phạm giáo dục" },
+        { word: "sluggish", def: "chậm chạp" },
+        { word: "unthinkable", def: "ko tưởng tượng nổi" },
+        { word: "superior", def: "vượt trội , tốt" },
+        { word: "abundant", def: "dồi dào" },
+        { word: "prevail", def: "thắng thế , chiếm ưu thế , thịnh hành" },
+        { word: "virtual", def: "gần như thực sự" },
+        { word: "tentative", def: "ngập ngừng , thăm dò" },
+        { word: "fold", def: "phá sản , đóng cửa" },
+        { word: "reinforce", def: "gia cố tăng cường" },
+        { word: "Eagerly", def: "1 cách háo hức" },
+        { word: "component", def: "thành phần , bộ phận" },
+        { word: "intuitively", def: "1 cách trực giác" },
+        { word: "streaming/tracking", def: "phân loại học sinh theo lớp" },
+        { word: "adhesive", def: "chất kết dính , keo" },
+        { word: "feat", def: "thành tích , thành tựu" },
+        { word: "rekindle", def: "thắp lại nhen nhóm lại" },
+        { word: "moisture", def: "độ ẩm" },
+        { word: "handling", def: "điều khiển 1 cách hợp lý" },
+        { word: "paradigm", def: "mô hình , hệ tư tưởng" },
+        { word: "moderation", def: "sự điều độ" },
+        { word: "attainment", def: "sự đạt được thành tựu" },
+        { word: "scramble", def: "sự tìm kiếm gấp gáp , tranh giành" },
+        { word: "crucial", def: "quan trọng , tất yếu" },
+        { word: "viable", def: "có khả thi , phát triển dc" },
+        { word: "plague", def: "gây rắc rối , quấy rầy" },
+        { word: "inherit", def: "kẻ thừa hưởng" },
+        { word: "distribute", def: "phân bổ , phân" },
+        { word: "brisk", def: "nhanh nhẹn , lanh lợi" },
+        { word: "straightforward", def: "dễ hiểu , đơn giản" },
+        { word: "underpin", def: "nền tảng củng cố" },
+        { word: "aggravate", def: "làm trầm trọng thêm" },
+        { word: "straggler", def: "người tụt hậu" },
+        { word: "emit", def: "phát thải ra" },
+        { word: "byproduct", def: "sản phẩm phụ" },
+        { word: "reluctant", def: "miễn cưỡng , ngần ngại" },
+        { word: "extent", def: "mức độ quy mô" },
+        { word: "miniaturize", def: "thu nhỏ" },
+        { word: "aptitude", def: "năng khiếu bẩm" },
+        { word: "accelerate", def: "tăng tốc" },
+        { word: "incorporate", def: "đưa vào kết hợp" },
+        { word: "shortcoming", def: "khuyết điểm thiếu sót" }
+    ];
+
+    let vocabList = [];
+    let initialTotal = 0;
+    let userName = "";
+    let currentWordObj = null;
+    let isAnswered = false;
+
+    // --- Web Audio API for sound effects ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            // High cheerful beep
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else {
+            // Low error buzz
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    // --- App Logic ---
+    function initApp() {
+        vocabList = rawVocab.map(v => ({ ...v, correctCount: 0 }));
+        initialTotal = vocabList.length * 4; // 4 successful hits to clear a word completely
+        
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('user-name').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') startGame();
+        });
+        document.getElementById('next-btn').addEventListener('click', () => {
+            if (isAnswered) generateQuestion();
+        });
+
+        // Global Enter key listener for the Next button
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && isAnswered) {
+                generateQuestion();
+            }
+        });
+    }
+
+    function startGame() {
+        const nameInput = document.getElementById('user-name').value.trim();
+        userName = nameInput || "Learner";
+        
+        // Initialize Audio context on first user interaction
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        switchScreen('quiz-screen');
+        updateProgress();
+        generateQuestion();
+    }
+
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function updateProgress() {
+        // Calculate remaining hits to clear deck
+        const currentHitsLeft = vocabList.reduce((acc, val) => acc + (4 - val.correctCount), 0);
+        const hitsDone = initialTotal - currentHitsLeft;
+        const percent = Math.min(100, Math.max(0, (hitsDone / initialTotal) * 100));
+        document.getElementById('progress').style.width = percent + '%';
+    }
+
+    function generateQuestion() {
+        hideFeedback();
+        isAnswered = false;
+
+        if (vocabList.length === 0) {
+            endGame();
+            return;
+        }
+
+        // Pick a random word from the pool
+        const randomIndex = Math.floor(Math.random() * vocabList.length);
+        currentWordObj = vocabList[randomIndex];
+
+        // Update UI Text
+        document.getElementById('question-word').innerText = currentWordObj.word;
+        
+        let statusText = "Level 1: Learning";
+        if (currentWordObj.correctCount === 2) statusText = "Level 2: Maintained 🔥";
+        if (currentWordObj.correctCount === 3) statusText = "Level 3: Mastered 👑";
+        document.getElementById('word-status').innerText = statusText;
+
+        // Generate options (1 correct, 3 wrong)
+        let options = [currentWordObj];
+        let attempts = 0;
+        while (options.length < 4 && attempts < 100) {
+            let rIdx = Math.floor(Math.random() * rawVocab.length);
+            let randomWrongWord = rawVocab[rIdx];
+            if (!options.some(opt => opt.word === randomWrongWord.word)) {
+                options.push(randomWrongWord);
+            }
+            attempts++;
+        }
+
+        // Shuffle options
+        options = options.sort(() => Math.random() - 0.5);
+
+        // Render buttons
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.def;
+            btn.onclick = () => checkAnswer(opt, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedOpt, btnElement) {
+        if (isAnswered) return;
+        isAnswered = true;
+
+        const allButtons = document.querySelectorAll('.option-btn');
+        allButtons.forEach(b => b.disabled = true);
+
+        const isCorrect = (selectedOpt.word === currentWordObj.word);
+
+        if (isCorrect) {
+            playSound('correct');
+            btnElement.classList.add('selected-correct');
+            
+            // Apply custom rules
+            currentWordObj.correctCount += 1;
+            
+            let statusMsg = "Awesome!";
+            if (currentWordObj.correctCount === 2) statusMsg = "Maintained! 🔥";
+            if (currentWordObj.correctCount === 3) statusMsg = "Mastered! 👑";
+            if (currentWordObj.correctCount === 4) {
+                statusMsg = "Cleared from list permanently! 🎉";
+                vocabList = vocabList.filter(v => v.word !== currentWordObj.word);
+            }
+
+            showFeedback(true, statusMsg, `${currentWordObj.word} = ${currentWordObj.def}`);
+        } else {
+            playSound('wrong');
+            btnElement.classList.add('selected-wrong');
+            
+            // Highlight the correct one
+            allButtons.forEach(b => {
+                if (b.innerText === currentWordObj.def) {
+                    b.classList.add('selected-correct');
+                }
+            });
+
+            // Note: Custom Rule 4 -> If wrong, don't reset progress. 
+            // So we do NOT decrement currentWordObj.correctCount
+
+            showFeedback(false, "Let's review this one", `Correct answer: ${currentWordObj.def}`);
+        }
+
+        updateProgress();
+    }
+
+    function showFeedback(isCorrect, title, def) {
+        const banner = document.getElementById('feedback-banner');
+        const nextBtn = document.getElementById('next-btn');
+
+        banner.className = isCorrect ? 'correct show' : 'wrong show';
+        
+        // Change button colors to match banner
+        if (isCorrect) {
+            nextBtn.style.backgroundColor = 'var(--primary-green)';
+            nextBtn.style.borderBottomColor = 'var(--primary-green-shadow)';
+            nextBtn.style.color = 'white';
+        } else {
+            nextBtn.style.backgroundColor = 'var(--red)';
+            nextBtn.style.borderBottomColor = 'var(--red-shadow)';
+            nextBtn.style.color = 'white';
+        }
+
+        document.getElementById('feedback-title').innerText = title;
+        document.getElementById('feedback-def').innerText = def;
+        
+        // Auto focus the next button for easy 'Enter' keypress, though our global listener handles it too
+        nextBtn.focus();
+    }
+
+    function hideFeedback() {
+        const banner = document.getElementById('feedback-banner');
+        banner.className = '';
+    }
+
+    function endGame() {
+        switchScreen('end-screen');
+        document.getElementById('congrats-msg').innerText = `Congratulations, ${userName}!`;
+        playSound('correct'); // Play a victory beep
+    }
+
+    window.onload = initApp;
+
+</script>
+</body>
+</html>
